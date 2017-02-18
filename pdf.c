@@ -1,6 +1,7 @@
 #include "pdf.h"
 
 #include <hpdf.h>
+#include <string.h>
 
 
 RGB RED = {255,0,0};
@@ -8,6 +9,22 @@ RGB GREEN = {0,255,0};
 RGB BLUE = {0,0,255};
 RGB WHITE = {255,255,255};
 RGB BLACK = {0,0,0};
+
+
+PDF create_pdf(void error_handler()) {
+    return HPDF_New(error_handler, NULL);
+}
+
+void delete_pdf(PDF pdf) {
+    HPDF_Free(pdf);
+}
+
+void save_pdf(PDF pdf, const char *basename) {
+    char *filename = strdup(basename);
+    filename = realloc(filename, strlen(filename) + strlen(".pdf") + 1);
+    strcat(filename, ".pdf");
+    HPDF_SaveToFile(pdf, filename);
+}
 
 
 Page add_page(PDF pdf) {
@@ -34,6 +51,9 @@ void set_dash(Page page, DashPattern pattern) {
     HPDF_Page_SetDash(page, pattern.lengths, pattern.part_count, 0);
 }
 
+void set_font_and_size(Page page, Font font, int font_size) {
+    HPDF_Page_SetFontAndSize(page, font, font_size);
+}
 
 void draw_rectangle(Page page, Position position, float width, float height) {
     HPDF_Page_Rectangle(page, position.x, position.y, width, height);

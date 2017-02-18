@@ -21,17 +21,17 @@ static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *use
 
 
 Project *create_project(char *project_name, int horisontal_divide, int vertical_divide) {
-    HPDF_Doc pdf;
+    PDF pdf;
     Project *project;
 
-    pdf = HPDF_New(error_handler, NULL);
+	pdf = create_pdf(error_handler);
     if (!pdf) {
         printf ("ERROR: cannot create pdf object.\n");
         return NULL;
     }
 
     if (setjmp(env)) {
-        HPDF_Free(pdf);
+        delete_pdf(pdf);
         return NULL;
     }
 
@@ -79,39 +79,50 @@ void add_board(Project *project, int page_count) {
     }
 }
 
+float get_text_width(Page page, const char *text) {
+    return HPDF_Page_TextWidth(page, text);
+}
+
+
 
 void add_feature(Project *project, char *feature_name, int height_in_fractions, int length_in_sprints) {
     Page page = add_page(project->pdf);
 
-    HPDF_REAL width = PAGE_WIDTH/project->horisontal_divide*length_in_sprints;
-    HPDF_REAL height = PAGE_HEIGHT/project->vertical_divide/project->fractions*height_in_fractions;
+    float width = PAGE_WIDTH/project->horisontal_divide*length_in_sprints;
+    float height = PAGE_HEIGHT/project->vertical_divide/project->fractions*height_in_fractions;
 
     RGB fill_color = {190, 190, 190};
     Position at = {0,0};
     set_fill(page, fill_color);
     draw_rectangle(page, at, width, height);
 
-    RGB stroke_color = {0,0,0};
-    set_stroke(page, stroke_color);
-
     Font font = get_font(project->pdf, "Helvetica-Bold");
 
     set_fill(page, BLUE);
     set_stroke(page, WHITE);
 
+	set_font_and_size(page, font, 24);
+	float w = get_text_width(page, project->name);
+
+    HPDF_TextWidth tw = HPDF_Font_TextWidth(font, project->name, strlen(project->name));
+    HPDF_Rect bb = HPDF_Font_GetBBox(font);
+
+    printf("height  = %f\n", bb.top-bb.bottom);
+
+    printf("w       = %f\n", w);
+    printf("tw.width= %d\n", tw.width);
+    printf("w/tw    = %f\n", w/tw.width);
+    printf("tw/w    = %f\n", tw.width/w);
+
     HPDF_Page_BeginText(page);
-    HPDF_Page_SetFontAndSize(page, font, 44);
     HPDF_Page_SetTextRenderingMode(page, HPDF_FILL_THEN_STROKE);
-    HPDF_Page_ShowText(page, feature_name);
+    HPDF_Page_TextOut(page, width/2-w/2, height/2-12, feature_name);
     HPDF_Page_EndText(page);
 }
 
 
 static void write_to_file(Project *project) {
-    char *filename = strdup(project->name);
-    filename = realloc(filename, strlen(filename) + strlen(".pdf") + 1);
-    strcat(filename, ".pdf");
-    HPDF_SaveToFile(project->pdf, filename);
+	save_pdf(project->pdf, project->name);
 }
 
 
