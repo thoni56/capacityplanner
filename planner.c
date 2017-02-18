@@ -1,14 +1,11 @@
 #include "planner.h"
 
-#include <hpdf.h>
-#include <hpdf_types.h>
-
 #include <setjmp.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "pdf.h"
-
+#include "vector.h"
 
 static jmp_buf env;
 
@@ -24,6 +21,7 @@ Project *create_project(char *project_name, int horisontal_divide, int vertical_
     PDF pdf;
     Project *project;
 
+    srandom(time(NULL));
 	pdf = create_pdf(error_handler);
     if (!pdf) {
         printf ("ERROR: cannot create pdf object.\n");
@@ -41,6 +39,8 @@ Project *create_project(char *project_name, int horisontal_divide, int vertical_
     project->horisontal_divide = horisontal_divide;
     project->vertical_divide = vertical_divide;
     project->fractions = 2;
+
+    project->feature = create_vector(NULL);
     return project;
 }
 
@@ -87,15 +87,14 @@ void write_text(Page page, float x, float y, TextMode mode, const char *text) {
     HPDF_Page_EndText(page);
 }
 
-void add_feature(Project *project, char *feature_name, int height_in_fractions, int length_in_sprints) {
+static void draw_feature(Project *project, Feature *feature) {
     Page page = add_page(project->pdf);
 
-    float width = PAGE_WIDTH/project->horisontal_divide*length_in_sprints;
-    float height = PAGE_HEIGHT/project->vertical_divide/project->fractions*height_in_fractions;
+    float width = PAGE_WIDTH/project->horisontal_divide*feature->length;
+    float height = PAGE_HEIGHT/project->vertical_divide/project->fractions*feature->fractions;
 
-    RGB fill_color = {190, 190, 90};
     Position at = {0,0};
-    set_fill(page, fill_color);
+    set_fill(page, feature->rgb);
     draw_rectangle(page, at, width, height);
 
     Font font = get_font(project->pdf, "Helvetica-Bold");
@@ -105,13 +104,36 @@ void add_feature(Project *project, char *feature_name, int height_in_fractions, 
 
     int font_size = 48;
 	set_font_and_size(page, font, font_size);
-	float text_width = get_text_width(page, feature_name);
+	float text_width = get_text_width(page, feature->name);
 
-    write_text(page, width/2-text_width/2, height/2-font_size/2, FILL_STROKE, feature_name);
+    write_text(page, width/2-text_width/2, height/2-font_size/2, FILL_STROKE, feature->name);
+}
+
+
+static RGB random_colour(void){
+    RGB rgb;
+    rgb.red = (random()>>16)%256;
+    rgb.green = (random()>>16)%256;
+    rgb.blue = (random()>>16)%256;
+    return rgb;
+}
+
+
+void add_feature(Project *project, char *feature_name, int height_in_fractions, int length_in_sprints) {
+    Feature *feature = (Feature *)malloc(sizeof(Feature));
+
+    feature->name = feature_name;
+    feature->fractions = height_in_fractions;
+    feature->length = length_in_sprints;
+    feature->rgb = random_colour();
+
+    add_item_to_vector(project->feature, feature);
 }
 
 
 static void write_to_file(Project *project) {
+    for (int f = 0; f < size_of_vector(project->feature); f++)
+        draw_feature(project, get_item_from_vector(project->feature, f));
 	save_pdf(project->pdf, project->name);
 }
 
