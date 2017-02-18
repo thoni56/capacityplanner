@@ -1,8 +1,8 @@
-#include <hpdf.h>
+#include "pdf.h"
 
 typedef struct Project {
     char *name;
-    HPDF_Doc pdf;
+    PDF pdf;
     int horisontal_divide;      /* How many columns? */
     int vertical_divide;        /* How many rows? */
     int fractions;                /* How many partials of a row? */
