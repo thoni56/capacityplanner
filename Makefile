@@ -1,8 +1,15 @@
-all: capacity_planner_tests
+CFLAGS = -g
 
+all: planner_tests
 
-capacity_planner_tests: capacity_planner_tests.so
-	cgreen-runner capacity_planner_tests.so
+planner_tests: planner_tests.so
+	cgreen-runner planner_tests.so
 
-capacity_planner_tests.so: capacity_planner_tests.o planner.o
-	$(CC) -shared -o$@ $^ -lcgreen -lhpdf
+planner_tests.so: planner_tests.o planner.o
+	$(CC) -shared -fPIC -o $@ $^ -lcgreen -lhpdf
+
+%.o:%.c
+	$(CC) -g -c -o $@ $^ -fPIC
+
+clean:
+	rm *.so *.o
