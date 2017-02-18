@@ -4,6 +4,7 @@
 #include <string.h>
 
 
+/* Some common colours: */
 RGB RED = {255,0,0};
 RGB GREEN = {0,255,0};
 RGB BLUE = {0,0,255};
@@ -31,6 +32,14 @@ Page add_page(PDF pdf) {
     Page page = HPDF_AddPage(pdf);
     HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_LANDSCAPE);
     return page;
+}
+
+int get_page_width(Page page) {
+    return HPDF_Page_GetWidth(page);
+}
+
+int get_page_height(Page page) {
+    return HPDF_Page_GetHeight(page);
 }
 
 
@@ -69,4 +78,12 @@ void draw_line(Page page, Position start, Position end) {
     HPDF_Page_MoveTo(page, start.x, start.y);
     HPDF_Page_LineTo(page, end.x, end.y);
     HPDF_Page_Stroke(page);
+}
+
+void write_text(Page page, float x, float y, TextMode mode, const char *text) {
+    HPDF_Page_BeginText(page);
+    HPDF_Page_SetTextRenderingMode(page, mode);
+    HPDF_Page_MoveTextPos(page, x, y);
+    HPDF_Page_ShowText(page, text);
+    HPDF_Page_EndText(page);
 }

@@ -3,6 +3,7 @@
 #include <setjmp.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "pdf.h"
 #include "vector.h"
@@ -17,6 +18,7 @@ static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *use
 }
 
 
+/*----------------------------------------------------------------------*/
 Project *create_project(char *project_name, int horisontal_divide, int vertical_divide) {
     PDF pdf;
     Project *project;
@@ -45,53 +47,52 @@ Project *create_project(char *project_name, int horisontal_divide, int vertical_
 }
 
 
-/* Sizes in pixels for A4 paper */
-#define PAGE_WIDTH 841.89
-#define PAGE_HEIGHT 595.267
+static void draw_grid(Project *project, Page page) {
+    float length = get_page_width(page)/project->horisontal_divide;
+    float height = get_page_height(page)/project->vertical_divide;
 
+    set_stroke(page, BLACK);
+    set_fill(page, WHITE);
+    for (int row = 0; row < project->vertical_divide; row++)
+        for (int column = 0; column < project->horisontal_divide; column++) {
+            Position pos = {column*length, row*height};
+            draw_rectangle(page, pos, length, height);
+        }
+}
+
+static void dash_fractions(Project *project, Page page) {
+    DashPattern dash_pattern = {2, {3,7}};
+    float length = get_page_width(page)/project->horisontal_divide;
+    float height = get_page_height(page)/project->vertical_divide;
+
+    set_dash(page, dash_pattern);
+    float fraction_height = height/project->fractions;
+    for (int row = 0; row < project->vertical_divide; row++)
+        for (int fraction = 1; fraction < project->fractions; fraction++) {
+            Position start = {0, row*height+fraction*fraction_height};
+            Position end = {get_page_width(page), row*height+fraction*fraction_height};
+            draw_line(page, start, end);
+        }
+}
+
+/*--------------------------------------------------*/
 void add_board(Project *project, int page_count) {
     RGB stroke_color = {0,0,0};
     RGB fill_color = {255,255,255};
 
     for (int i = 0; i < page_count; i++) {
         Page page = add_page(project->pdf);
-        set_stroke(page, BLACK);
-        set_fill(page, WHITE);
-
-        float length = PAGE_WIDTH/project->horisontal_divide;
-        float height = PAGE_HEIGHT/project->vertical_divide;
-
-        for (int row = 0; row < project->vertical_divide; row++)
-            for (int column = 0; column < project->horisontal_divide; column++) {
-                Position pos = {column*length, row*height};
-                draw_rectangle(page, pos, length, height);
-            }
-
-        DashPattern dash_pattern = {2, {3,7}};
-        set_dash(page, dash_pattern);
-        float fraction_height = height/project->fractions;
-        for (int row = 0; row < project->vertical_divide; row++)
-            for (int fraction = 1; fraction < project->fractions; fraction++) {
-                Position start = {0, row*height+fraction*fraction_height};
-                Position end = {PAGE_WIDTH, row*height+fraction*fraction_height};
-                draw_line(page, start, end);
-            }
+        draw_grid(project, page);
+        dash_fractions(project, page);
     }
 }
 
-void write_text(Page page, float x, float y, TextMode mode, const char *text) {
-    HPDF_Page_BeginText(page);
-    HPDF_Page_SetTextRenderingMode(page, mode);
-    HPDF_Page_MoveTextPos(page, x, y);
-    HPDF_Page_ShowText(page, text);
-    HPDF_Page_EndText(page);
-}
 
 static void draw_feature(Project *project, Feature *feature) {
     Page page = add_page(project->pdf);
 
-    float width = PAGE_WIDTH/project->horisontal_divide*feature->length;
-    float height = PAGE_HEIGHT/project->vertical_divide/project->fractions*feature->fractions;
+    float width = get_page_width(page)/project->horisontal_divide*feature->length;
+    float height = get_page_height(page)/project->vertical_divide/project->fractions*feature->fractions;
 
     Position at = {0,0};
     set_fill(page, feature->rgb);
@@ -119,6 +120,7 @@ static RGB random_colour(void){
 }
 
 
+/*----------------------------------------------------------------------*/
 void add_feature(Project *project, char *feature_name, int height_in_fractions, int length_in_sprints) {
     Feature *feature = (Feature *)malloc(sizeof(Feature));
 
@@ -138,6 +140,7 @@ static void write_to_file(Project *project) {
 }
 
 
+/*----------------------------------------------------------------------*/
 void close_project(Project *project) {
 	write_to_file(project);
     delete_pdf(project->pdf);

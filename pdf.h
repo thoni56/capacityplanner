@@ -24,11 +24,19 @@ typedef enum {
     FILL_STROKE = HPDF_FILL_THEN_STROKE
 } TextMode;
 
+
+/* Sizes in pixels for A4 paper */
+#define A4_PAGE_WIDTH 841.89
+#define A4_PAGE_HEIGHT 595.267
+
+
 extern PDF create_pdf(void error_handler());
 extern void delete_pdf(PDF pdf);
 extern void save_pdf(PDF pdf, const char *basename);
 
-extern Page add_page(PDF);
+extern Page add_page(PDF pdf);
+extern int get_page_width(Page page);
+extern int get_page_height(Page page);
 
 extern Font get_font(PDF pdf, const char *font_name);
 extern float get_text_width(Page page, const char *text);
@@ -40,5 +48,7 @@ extern void set_font_and_size(Page page, Font font, int font_size);
 
 extern void draw_rectangle(Page page, Position at, float width, float height);
 extern void draw_line(Page page, Position start, Position end);
+
+extern void write_text(Page page, float x, float y, TextMode mode, const char *text);
 
 #endif
