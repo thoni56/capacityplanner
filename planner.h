@@ -5,7 +5,7 @@ typedef struct Project {
     PDF pdf;
     int horisontal_divide;      /* How many columns? */
     int vertical_divide;        /* How many rows? */
-    int fractions;                /* How many partials of a row? */
+    int fractions;              /* How many partials of a row? */
 } Project;
 
 Project *create_project(char *project_name, int horisontal_divide, int vertical_divide);

@@ -32,6 +32,7 @@ Ensure(Planner, can_create_project_and_add_a_planboard) {
     FILE *pdf = fopen("project.pdf", "r");
 }
 
+
 Ensure(Planner, can_create_project_and_add_feature) {
     Project *project = create_project("project", 3, 5);
     add_board(project, 2);

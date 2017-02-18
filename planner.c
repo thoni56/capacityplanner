@@ -94,12 +94,14 @@ void add_feature(Project *project, char *feature_name, int height_in_fractions, 
     RGB stroke_color = {0,0,0};
     set_stroke(page, stroke_color);
 
-    HPDF_Page_BeginText(page);
+    Font font = get_font(project->pdf, "Helvetica-Bold");
+
     set_fill(page, BLUE);
     set_stroke(page, WHITE);
-    HPDF_Page_SetTextRenderingMode(page, HPDF_FILL_THEN_STROKE);
-    HPDF_Font font = HPDF_GetFont(project->pdf, "Helvetica-Bold", NULL);
+
+    HPDF_Page_BeginText(page);
     HPDF_Page_SetFontAndSize(page, font, 44);
+    HPDF_Page_SetTextRenderingMode(page, HPDF_FILL_THEN_STROKE);
     HPDF_Page_ShowText(page, feature_name);
     HPDF_Page_EndText(page);
 }

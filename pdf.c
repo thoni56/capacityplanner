@@ -16,6 +16,12 @@ Page add_page(PDF pdf) {
     return page;
 }
 
+
+Font get_font(PDF pdf, const char *font_name) {
+    return HPDF_GetFont(pdf, font_name, NULL);
+}
+
+
 void set_stroke(Page page, RGB rgb) {
     HPDF_Page_SetRGBStroke(page, ((float)rgb.red)/255, ((float)rgb.green)/255, ((float)rgb.blue)/255);
 }
@@ -27,6 +33,7 @@ void set_fill(Page page, RGB rgb) {
 void set_dash(Page page, DashPattern pattern) {
     HPDF_Page_SetDash(page, pattern.lengths, pattern.part_count, 0);
 }
+
 
 void draw_rectangle(Page page, Position position, float width, float height) {
     HPDF_Page_Rectangle(page, position.x, position.y, width, height);
