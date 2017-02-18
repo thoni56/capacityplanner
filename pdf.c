@@ -39,6 +39,11 @@ Font get_font(PDF pdf, const char *font_name) {
 }
 
 
+float get_text_width(Page page, const char *text) {
+    return HPDF_Page_TextWidth(page, text);
+}
+
+
 void set_stroke(Page page, RGB rgb) {
     HPDF_Page_SetRGBStroke(page, ((float)rgb.red)/255, ((float)rgb.green)/255, ((float)rgb.blue)/255);
 }

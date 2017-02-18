@@ -18,6 +18,11 @@ extern RGB BLUE;
 extern RGB WHITE;
 extern RGB BLACK;
 
+typedef enum {
+    FILL = HPDF_FILL,
+    STROKE = HPDF_STROKE,
+    FILL_STROKE = HPDF_FILL_THEN_STROKE
+} TextMode;
 
 extern PDF create_pdf(void error_handler());
 extern void delete_pdf(PDF pdf);
@@ -26,6 +31,7 @@ extern void save_pdf(PDF pdf, const char *basename);
 extern Page add_page(PDF);
 
 extern Font get_font(PDF pdf, const char *font_name);
+extern float get_text_width(Page page, const char *text);
 
 extern void set_fill(Page page, RGB rgb);
 extern void set_stroke(Page page, RGB rgb);

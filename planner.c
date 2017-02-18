@@ -79,11 +79,13 @@ void add_board(Project *project, int page_count) {
     }
 }
 
-float get_text_width(Page page, const char *text) {
-    return HPDF_Page_TextWidth(page, text);
+void write_text(Page page, float x, float y, TextMode mode, const char *text) {
+    HPDF_Page_BeginText(page);
+    HPDF_Page_SetTextRenderingMode(page, mode);
+    HPDF_Page_MoveTextPos(page, x, y);
+    HPDF_Page_ShowText(page, text);
+    HPDF_Page_EndText(page);
 }
-
-
 
 void add_feature(Project *project, char *feature_name, int height_in_fractions, int length_in_sprints) {
     Page page = add_page(project->pdf);
@@ -91,33 +93,21 @@ void add_feature(Project *project, char *feature_name, int height_in_fractions, 
     float width = PAGE_WIDTH/project->horisontal_divide*length_in_sprints;
     float height = PAGE_HEIGHT/project->vertical_divide/project->fractions*height_in_fractions;
 
-    RGB fill_color = {190, 190, 190};
+    RGB fill_color = {190, 190, 90};
     Position at = {0,0};
     set_fill(page, fill_color);
     draw_rectangle(page, at, width, height);
 
     Font font = get_font(project->pdf, "Helvetica-Bold");
 
-    set_fill(page, BLUE);
+    set_fill(page, BLACK);
     set_stroke(page, WHITE);
 
-	set_font_and_size(page, font, 24);
-	float w = get_text_width(page, project->name);
+    int font_size = 48;
+	set_font_and_size(page, font, font_size);
+	float text_width = get_text_width(page, feature_name);
 
-    HPDF_TextWidth tw = HPDF_Font_TextWidth(font, project->name, strlen(project->name));
-    HPDF_Rect bb = HPDF_Font_GetBBox(font);
-
-    printf("height  = %f\n", bb.top-bb.bottom);
-
-    printf("w       = %f\n", w);
-    printf("tw.width= %d\n", tw.width);
-    printf("w/tw    = %f\n", w/tw.width);
-    printf("tw/w    = %f\n", tw.width/w);
-
-    HPDF_Page_BeginText(page);
-    HPDF_Page_SetTextRenderingMode(page, HPDF_FILL_THEN_STROKE);
-    HPDF_Page_TextOut(page, width/2-w/2, height/2-12, feature_name);
-    HPDF_Page_EndText(page);
+    write_text(page, width/2-text_width/2, height/2-font_size/2, FILL_STROKE, feature_name);
 }
 
 
@@ -128,5 +118,6 @@ static void write_to_file(Project *project) {
 
 void close_project(Project *project) {
 	write_to_file(project);
+    delete_pdf(project->pdf);
     free(project);
 }
