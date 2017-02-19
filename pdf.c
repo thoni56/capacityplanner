@@ -62,7 +62,7 @@ void set_fill(Page page, RGB rgb) {
 }
 
 void set_dash(Page page, DashPattern pattern) {
-    HPDF_Page_SetDash(page, pattern.lengths, pattern.part_count, 0);
+    HPDF_Page_SetDash(page, pattern.segment_lengths, pattern.segment_count, 0);
 }
 
 void set_font_and_size(Page page, Font font, int font_size) {
@@ -80,10 +80,10 @@ void draw_line(Page page, Position start, Position end) {
     HPDF_Page_Stroke(page);
 }
 
-void write_text(Page page, float x, float y, TextMode mode, const char *text) {
+void write_text(Page page, Position position, TextMode mode, const char *text) {
     HPDF_Page_BeginText(page);
     HPDF_Page_SetTextRenderingMode(page, mode);
-    HPDF_Page_MoveTextPos(page, x, y);
+    HPDF_Page_MoveTextPos(page, position.x, position.y);
     HPDF_Page_ShowText(page, text);
     HPDF_Page_EndText(page);
 }

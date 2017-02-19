@@ -10,7 +10,7 @@ typedef HPDF_Font Font;
 
 typedef struct { float x; float y; } Position;
 typedef struct { int red; int green; int blue; } RGB;
-typedef struct { int part_count; uint16_t lengths[10];} DashPattern;
+typedef struct { int segment_count; uint16_t segment_lengths[10];} DashPattern;
 
 extern RGB RED;
 extern RGB GREEN;
@@ -49,6 +49,6 @@ extern void set_font_and_size(Page page, Font font, int font_size);
 extern void draw_rectangle(Page page, Position at, float width, float height);
 extern void draw_line(Page page, Position start, Position end);
 
-extern void write_text(Page page, float x, float y, TextMode mode, const char *text);
+extern void write_text(Page page, Position position, TextMode mode, const char *text);
 
 #endif

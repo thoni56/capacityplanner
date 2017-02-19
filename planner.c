@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "pdf.h"
 #include "vector.h"
@@ -88,15 +89,13 @@ void add_board(Project *project, int page_count) {
 }
 
 
-static void draw_feature(Project *project, Feature *feature) {
-    Page page = add_page(project->pdf);
-
+static int draw_feature(Project *project, Page page, Feature *feature, int used_height) {
     float width = get_page_width(page)/project->horisontal_divide*feature->length;
     float height = get_page_height(page)/project->vertical_divide/project->fractions*feature->fractions;
 
-    Position at = {0,0};
+    Position rectangle_at = {0, used_height};
     set_fill(page, feature->rgb);
-    draw_rectangle(page, at, width, height);
+    draw_rectangle(page, rectangle_at, width, height);
 
     Font font = get_font(project->pdf, "Helvetica-Bold");
 
@@ -107,7 +106,10 @@ static void draw_feature(Project *project, Feature *feature) {
 	set_font_and_size(page, font, font_size);
 	float text_width = get_text_width(page, feature->name);
 
-    write_text(page, width/2-text_width/2, height/2-font_size/2, FILL_STROKE, feature->name);
+    Position text_at = {width/2-text_width/2, height/2-font_size/2+used_height};
+    write_text(page, text_at, FILL_STROKE, feature->name);
+
+    return used_height+height;
 }
 
 
@@ -133,9 +135,19 @@ void add_feature(Project *project, char *feature_name, int height_in_fractions, 
 }
 
 
+static bool feature_fits(Page page, Feature *feature, int used_height) {
+    return true;
+}
+
 static void write_to_file(Project *project) {
-    for (int f = 0; f < size_of_vector(project->feature); f++)
-        draw_feature(project, get_item_from_vector(project->feature, f));
+    Page page = add_page(project->pdf);
+    int used_height = 0;
+    for (int f = 0; f < size_of_vector(project->feature); f++) {
+        Feature *feature = (Feature *)get_item_from_vector(project->feature, f);
+        if (!feature_fits(page, feature, used_height))
+            page = add_page(project->pdf);
+        used_height = draw_feature(project, page, feature, used_height);
+    }
 	save_pdf(project->pdf, project->name);
 }
 
