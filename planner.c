@@ -20,7 +20,7 @@ static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *use
 
 
 /*----------------------------------------------------------------------*/
-Project *create_project(char *project_name, int horisontal_divide, int vertical_divide) {
+Project *create_project(char *project_name) {
     PDF pdf;
     Project *project;
 
@@ -39,23 +39,34 @@ Project *create_project(char *project_name, int horisontal_divide, int vertical_
     project = (Project*)malloc(sizeof(Project));
     project->name = project_name;
     project->pdf = pdf;
-    project->horisontal_divide = horisontal_divide;
-    project->vertical_divide = vertical_divide;
+    project->horizontal_divide = 2;
+    project->vertical_divide = 4;
     project->fractions = 2;
 
     project->feature = create_vector(NULL);
     return project;
 }
 
+void set_horizontal_divide(Project *project, int divide) {
+    project->horizontal_divide = divide;
+}
+
+void set_vertical_divide(Project *project, int divide) {
+    project->vertical_divide = divide;
+}
+
+void set_fractions(Project *project, int fractions) {
+    project->fractions = fractions;
+}
 
 static void draw_grid(Project *project, Page page) {
-    float length = get_page_width(page)/project->horisontal_divide;
+    float length = get_page_width(page)/project->horizontal_divide;
     float height = get_page_height(page)/project->vertical_divide;
 
     set_stroke(page, BLACK);
     set_fill(page, WHITE);
     for (int row = 0; row < project->vertical_divide; row++)
-        for (int column = 0; column < project->horisontal_divide; column++) {
+        for (int column = 0; column < project->horizontal_divide; column++) {
             Position pos = {column*length, row*height};
             draw_rectangle(page, pos, length, height);
         }
@@ -63,7 +74,7 @@ static void draw_grid(Project *project, Page page) {
 
 static void dash_fractions(Project *project, Page page) {
     DashPattern dash_pattern = {2, {3,7}};
-    float length = get_page_width(page)/project->horisontal_divide;
+    float length = get_page_width(page)/project->horizontal_divide;
     float height = get_page_height(page)/project->vertical_divide;
 
     set_dash(page, dash_pattern);
@@ -90,7 +101,7 @@ void add_board(Project *project, int page_count) {
 
 
 static int draw_feature(Project *project, Page page, Feature *feature, int used_height) {
-    float width = get_page_width(page)/project->horisontal_divide*feature->length;
+    float width = get_page_width(page)/project->horizontal_divide*feature->length;
     float height = get_page_height(page)/project->vertical_divide/project->fractions*feature->fractions;
 
     Position rectangle_at = {0, used_height};
