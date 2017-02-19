@@ -28,8 +28,6 @@ Ensure(Planner, can_create_project_and_add_a_planboard) {
     Project *project = create_project("project");
     add_board(project, 2);
     close_project(project);
-
-    FILE *pdf = fopen("project.pdf", "r");
 }
 
 
@@ -38,8 +36,6 @@ Ensure(Planner, can_create_project_and_add_feature) {
     add_board(project, 2);
     add_feature(project, "feature1", 2, 2);
     close_project(project);
-
-    FILE *pdf = fopen("project.pdf", "r");
 }
 
 
@@ -51,18 +47,20 @@ Ensure(Planner, can_create_project_and_add_two_features) {
     add_feature(project, "feature1", 2, 2);
     add_feature(project, "feature2", 4, 3);
     close_project(project);
-
-    FILE *pdf = fopen("project.pdf", "r");
 }
 
-Ensure(Planner, can_create_project_and_select_features_fill_height) {
+Ensure(Planner, can_create_project_and_select_features_to_fill_height) {
     Project *project = create_project("project");
     set_horizontal_divide(project, 3);
     set_vertical_divide(project, 5);
+    set_fractions(project, 2);
+
     add_board(project, 2);
+
     add_feature(project, "feature1", 2, 2);
     add_feature(project, "feature2", 4, 3);
-    close_project(project);
+    add_feature(project, "feature3", 5, 3);
+    add_feature(project, "feature4", 4, 3);
 
-    FILE *pdf = fopen("project.pdf", "r");
+    close_project(project);
 }
