@@ -60,7 +60,7 @@ Ensure(Planner, can_create_project_and_select_features_to_fill_height) {
     add_feature(project, "feature1", 2, 2);
     add_feature(project, "feature2", 4, 3);
     add_feature(project, "feature3", 5, 3);
-    add_feature(project, "feature4", 4, 3);
+    add_feature(project, "feature4", 4, 13);
 
     close_project(project);
 }

@@ -99,20 +99,13 @@ void add_board(Project *project, int page_count) {
     }
 }
 
-
-static void draw_feature(Project *project, Page page, Feature *feature,
-                        int used_fractions) {
-    float width = get_page_width(page)/project->horizontal_divide*feature->length;
-    float fraction_height = get_page_height(page)/project->vertical_divide/project->fractions;
-    float height = fraction_height*feature->fractions;
-    float offset = used_fractions*fraction_height;
-
+static void draw_feature_box(Page page, Feature *feature, float width, float height, float offset) {
     Position rectangle_at = {0, offset};
     set_fill(page, feature->rgb);
     draw_rectangle(page, rectangle_at, width, height);
+}
 
-    Font font = get_font(project->pdf, "Helvetica-Bold");
-
+static void draw_feature_name(Page page, Feature *feature, Font font, float width, float height, float offset) {
     set_fill(page, BLACK);
     set_stroke(page, WHITE);
 
@@ -122,8 +115,25 @@ static void draw_feature(Project *project, Page page, Feature *feature,
 
     Position text_at = {width/2-text_width/2, height/2-font_size/2+offset};
     write_text(page, text_at, FILL_STROKE, feature->name);
+}
 
-    feature->left_to_draw = 0;
+static void draw_feature(Project *project, Page page, Feature *feature,
+                        int used_fractions) {
+    float sprint_width = get_page_width(page)/project->horizontal_divide;
+    float fraction_height = get_page_height(page)/project->vertical_divide/project->fractions;
+    int length = feature->left_to_draw > project->horizontal_divide?
+        project->horizontal_divide:feature->left_to_draw;
+    float drawing_width = length*sprint_width;
+    float drawing_height = feature->fractions*fraction_height;
+    float offset = used_fractions*fraction_height;
+
+	draw_feature_box(page, feature, drawing_width, drawing_height, offset);
+
+    Font font = get_font(project->pdf, "Helvetica-Bold");
+	draw_feature_name(page, feature, font, drawing_width, drawing_height,
+                      offset);
+
+    feature->left_to_draw -= length;
 }
 
 
@@ -162,14 +172,13 @@ static void write_to_file(Project *project) {
         features_to_draw = false;
         for (int f = 0; f < size_of_vector(project->features); f++) {
             Feature *feature = (Feature *)get_item_from_vector(project->features, f);
-            if (feature->left_to_draw > 0) {
-                if (feature_fits(available_fractions, feature, used_fractions)) {
-                    draw_feature(project, page, feature, used_fractions);
-                    used_fractions += feature->fractions;
-                } else {
-                    features_to_draw = true;
-                }
+            while (feature->left_to_draw > 0 &&
+                   feature_fits(available_fractions, feature, used_fractions)) {
+                draw_feature(project, page, feature, used_fractions);
+                used_fractions += feature->fractions;
             }
+            if (feature->left_to_draw > 0)
+                features_to_draw = true;
         }
         if (features_to_draw) {
             page = add_page(project->pdf);
